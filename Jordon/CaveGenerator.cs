@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CaveGenerator : MonoBehaviour
 {
+    
+
     public Material viewMat;
     public Vector2 n1, n2, offset;
     Texture2D view;
@@ -95,16 +97,7 @@ public class CaveGenerator : MonoBehaviour
 
                 Vector2 pos = new Vector2(i, j) / resolution * size + new Vector2(transform.position.x, transform.position.y) - new Vector2(transform.localScale.x, transform.localScale.y)/2 + offset;
 
-                float value = rooms[0].getValue(pos);
-
-                foreach(Room room in rooms)
-                {
-                    value = smoothMin(value, room.getValue(pos), room.smoothFactor);
-                    foreach (Hallway hallway in room.hallways)
-                    {
-                        value = smoothMin(value, hallway.getValue(pos), room.smoothFactor);
-                    }
-                }
+                float value = getValue(pos);
 
 
                 values[i, j] = value > 0f ? .2f : .7f;
@@ -117,6 +110,21 @@ public class CaveGenerator : MonoBehaviour
         view.filterMode = FilterMode.Point;
         view.Apply();
 
+    }
+
+    public float getValue(Vector2 pos)
+    {
+        float value = rooms[0].getValue(pos);
+
+        foreach (Room room in rooms)
+        {
+            value = smoothMin(value, room.getValue(pos), room.smoothFactor);
+            foreach (Hallway hallway in room.hallways)
+            {
+                value = smoothMin(value, hallway.getValue(pos), room.smoothFactor);
+            }
+        }
+        return value;
     }
     float smoothMin(float a, float b, float c)
     {
