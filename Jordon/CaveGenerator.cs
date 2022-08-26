@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class CaveGenerator : MonoBehaviour
 {
-    
-
     public Material viewMat;
     public Vector2 n1, n2, offset;
     Texture2D view;
@@ -26,16 +24,17 @@ public class CaveGenerator : MonoBehaviour
         view = new Texture2D(resolution, resolution);
         viewMat = transform.GetComponent<Renderer>().material;
         viewMat.mainTexture = view;
-        rooms.Add(new Room(new Vector2(size/4, size/2), roomSize, smoothFactor));
+        rooms.Add(new Room(new Vector2(0,0), roomSize, smoothFactor));
 
         for (int i = 0; i < numRooms; i++)
         {
 
-            Room room = new Room(new Vector2(size * 3 / 4, size * (i + 1f) / (numRooms + 1f)), roomSize/2, smoothFactor, 3);
+            Room room = new Room(new Vector2(size * 3 / 4, size * (i + 1f) / (numRooms + 1f) - size/2f), roomSize/2, smoothFactor, 3);
             room.hallways.Add(new Hallway(rooms[0], room, hallwaySize));
             rooms.Add(room);
 
         }
+        gameObject.GetComponent<ColiderGenerator>().init();
 
     }
 
@@ -44,6 +43,22 @@ public class CaveGenerator : MonoBehaviour
     {
         generateMap(rooms);
     }
+
+    public float getValue(Vector2 pos)
+    {
+        float value = rooms[0].getValue(pos);
+
+        foreach (Room room in rooms)
+        {
+            value = smoothMin(value, room.getValue(pos), room.smoothFactor);
+            foreach (Hallway hallway in room.hallways)
+            {
+                value = smoothMin(value, hallway.getValue(pos), room.smoothFactor);
+            }
+        }
+        return value;
+    }
+
     void randomizeTexture()
     {
         
@@ -78,12 +93,21 @@ public class CaveGenerator : MonoBehaviour
             for (int j = 0; j < values.GetLength(1); j++)
             {
 
-                Vector2 pos = new Vector2(i, j) / resolution * size + offset;
+                Vector2 pos = new Vector2(i, j) / resolution * size + new Vector2(transform.position.x, transform.position.y) - new Vector2(transform.localScale.x, transform.localScale.y)/2 + offset;
 
-                float value = getValue(pos);
+                float value = rooms[0].getValue(pos);
+
+                foreach(Room room in rooms)
+                {
+                    value = smoothMin(value, room.getValue(pos), room.smoothFactor);
+                    foreach (Hallway hallway in room.hallways)
+                    {
+                        value = smoothMin(value, hallway.getValue(pos), room.smoothFactor);
+                    }
+                }
 
 
-                values[i, j] = value>0f?0f:1f;
+                values[i, j] = value > 0f ? .2f : .7f;
                 colors[index] = new Color(values[i, j], values[i, j], values[i, j]);
                 index++;
             }
@@ -93,21 +117,6 @@ public class CaveGenerator : MonoBehaviour
         view.filterMode = FilterMode.Point;
         view.Apply();
 
-    }
-
-    public float getValue(Vector2 pos)
-    {
-        float value = rooms[0].getValue(pos);
-
-        foreach (Room room in rooms)
-        {
-            value = smoothMin(value, room.getValue(pos), room.smoothFactor);
-            foreach (Hallway hallway in room.hallways)
-            {
-                value = smoothMin(value, hallway.getValue(pos), room.smoothFactor);
-            }
-        }
-        return value;
     }
     float smoothMin(float a, float b, float c)
     {
