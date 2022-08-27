@@ -47,8 +47,8 @@ public class CaveGenerator : MonoBehaviour
         hallways.Add(new Hallway(rooms[3], rooms[4], hallwaySize));
         hallways.Add(new Hallway(rooms[1], rooms[5], hallwaySize));
 
-        start.transform.position = rooms[4].position;
-        end.transform.position = rooms[0].position;
+        start.transform.position = rooms[0].position;
+        end.transform.position = rooms[4].position;
        
 
         float[] positions = new float[40];
