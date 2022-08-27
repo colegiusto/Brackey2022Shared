@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class ColiderGenerator : MonoBehaviour
 {
-    public EdgeCollider2D edgeCollider;
     public CaveGenerator caveGenerator;
     public GameObject sphere;
     public BoundsInt bounds;
@@ -14,12 +13,8 @@ public class ColiderGenerator : MonoBehaviour
     public void init()
     {
         
-        edgeCollider = GetComponent<EdgeCollider2D>();
         caveGenerator = GetComponent<CaveGenerator>();
-        if (edgeCollider == null)
-        {
-            edgeCollider = gameObject.AddComponent<EdgeCollider2D>();
-        }
+        
         generateColiderPoints();
 
     }
@@ -42,45 +37,48 @@ public class ColiderGenerator : MonoBehaviour
                 
             }
         }
-        List<Vector2> singleVerts = new List<Vector2>();
-        foreach (Vector2[] v in verticies)
-        {
-            singleVerts.Add(v[0]);
-            singleVerts.Add(v[1]);
-
-        }
-        List<Vector2> colliderPoints = new List<Vector2>();
+        
+        List<List<Vector2>> colliderPoints = new List<List<Vector2>>();
+        colliderPoints.Add(new List<Vector2>());
+        print(colliderPoints.Count);
 
         List<Vector2> singlePoints = new List<Vector2>();
 
-        colliderPoints.Add(verticies[0][0]);
-        colliderPoints.Add(verticies[0][1]);
+        colliderPoints[0].Add(verticies[0][0]);
+        colliderPoints[0].Add(verticies[0][1]);
 
         verticies.RemoveAt(0);
 
         while(verticies.Count>0)
         {
-            Vector2 currentPoint = colliderPoints[colliderPoints.Count - 1];
+            Vector2 currentPoint = colliderPoints[colliderPoints.Count - 1][colliderPoints[colliderPoints.Count - 1].Count - 1];
             (Vector2[] edge, int index) = edgePointIsIn(currentPoint, verticies);
 
             if(index == -1)
             {
-                colliderPoints.Add(verticies[0][0]);
-                colliderPoints.Add(verticies[0][1]);
+                colliderPoints.Add(new List<Vector2>());
+                colliderPoints[colliderPoints.Count - 1].Add(verticies[0][0]);
+                colliderPoints[colliderPoints.Count - 1].Add(verticies[0][1]);
                 verticies.RemoveAt(0);
                 continue;
             }
 
-            colliderPoints.Add(edge[index]);
+            colliderPoints[colliderPoints.Count - 1].Add(edge[index]);
             currentPoint = edge[index];
             verticies.Remove(edge);
 
         }
+        print(colliderPoints.Count);
         for (int i = 0; i < colliderPoints.Count; i++)
         {
-            colliderPoints[i] = gameObject.transform.InverseTransformPoint(colliderPoints[i]);
+            for (int j = 0; j < colliderPoints[i].Count; j++)
+            {
+                colliderPoints[i][j] = gameObject.transform.InverseTransformPoint(colliderPoints[i][j]);
+            }
+            EdgeCollider2D edge = gameObject.AddComponent<EdgeCollider2D>();
+            edge.SetPoints(colliderPoints[i]);
+            
         }
-        edgeCollider.SetPoints(colliderPoints);
     }
     
     (Vector2[], int) edgePointIsIn(Vector2 v, List<Vector2[]> segments)
@@ -96,7 +94,7 @@ public class ColiderGenerator : MonoBehaviour
                 return (arr, 0);
             }
         }
-        return (null, -1);
+        return (new Vector2[] { new Vector2()}, -1);
     }
 
     

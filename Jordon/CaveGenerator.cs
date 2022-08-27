@@ -4,42 +4,57 @@ using UnityEngine;
 
 public class CaveGenerator : MonoBehaviour
 {
+    public GameObject start, end;
+    public float floorLength, floorWidth;
+    public float roomSpacing;
+    public float cycleChance;
+
     public Material viewMat;
     public Vector2 n1, n2, offset;
     Texture2D view;
     public Sprite floor, wall;
     public int resolution, size, numRooms;
-    public float roomSize, hallwaySize, squareFactor;
-    public float smoothFactor
-    {
-        get { return _smoothFactor; }
-        set { _smoothFactor = Mathf.Clamp(value, 0, 10); }
-    }
-    [SerializeField] private float _smoothFactor;
+    public float roomSize, roomSizeVariance, hallwaySize, squareFactor;
+    public float smoothFactor;
     [SerializeField] public List<Room> rooms;
+    public List<Hallway> hallways;
 
 
     void Start()
     {
+        System.Random random = new System.Random(0);
         
         view = new Texture2D(resolution, resolution);
         viewMat = transform.GetComponent<Renderer>().material;
         viewMat.mainTexture = view;
-        rooms.Add(new Room(new Vector2(0,-1), roomSize, smoothFactor, 2));
 
-        for (int i = 0; i < numRooms; i++)
-        {
+        int rooms_wide = (int)floorWidth / (int)roomSpacing;
+        int rooms_long = (int)floorLength / (int)roomSpacing;
 
-            Room room = new Room(new Vector2(size * (i + 1f) / (numRooms + 1f) - size/2f, size/3), roomSize/2, smoothFactor, 3);
-            room.hallways.Add(new Hallway(rooms[0], room, hallwaySize));
-            rooms.Add(room);
+        Random.InitState(0);
 
-        }
+        rooms.Add(new Room(new Vector2(0, 0), roomSize + roomSizeVariance*((float)random.NextDouble() - .5f), smoothFactor, squareFactor));
+        rooms.Add(new Room(new Vector2(0, roomSpacing),roomSize + roomSizeVariance * ((float)random.NextDouble() - .5f), smoothFactor, squareFactor));
+        rooms.Add(new Room(new Vector2(0, 2*roomSpacing), roomSize + roomSizeVariance * ((float)random.NextDouble() - .5f), smoothFactor));
+        rooms.Add(new Room(new Vector2(roomSpacing, roomSpacing), roomSize + roomSizeVariance * ((float)random.NextDouble() - .5f), smoothFactor, squareFactor));
+        rooms.Add(new Room(new Vector2(roomSpacing, 2*roomSpacing), roomSize + roomSizeVariance * ((float)random.NextDouble() - .5f), smoothFactor, squareFactor));
+        rooms.Add(new Room(new Vector2(-roomSpacing, roomSpacing), roomSize + roomSizeVariance * ((float)random.NextDouble() - .5f), smoothFactor, squareFactor));
 
-        float[] positions = new float[20];
-        float[] sizes = new float[10];
-        float[] smooth = new float[10];
-        float[] square = new float[10];
+        hallways = new List<Hallway>();
+        hallways.Add(new Hallway(rooms[0], rooms[1], hallwaySize));
+        hallways.Add(new Hallway(rooms[1], rooms[2], hallwaySize));
+        hallways.Add(new Hallway(rooms[1], rooms[3], hallwaySize));
+        hallways.Add(new Hallway(rooms[3], rooms[4], hallwaySize));
+        hallways.Add(new Hallway(rooms[1], rooms[5], hallwaySize));
+
+        start.transform.position = rooms[4].position;
+        end.transform.position = rooms[0].position;
+       
+
+        float[] positions = new float[40];
+        float[] sizes = new float[20];
+        float[] smooth = new float[20];
+        float[] square = new float[20];
 
         
 
@@ -59,8 +74,18 @@ public class CaveGenerator : MonoBehaviour
         viewMat.SetFloatArray("_room_smooth", smooth);
         viewMat.SetFloatArray("_room_square", square);
 
-        viewMat.SetInt("_num_hallways", 5);
-        viewMat.SetFloatArray("_hallways", new float[] { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5 });
+        viewMat.SetInt("_num_hallways", hallways.Count+1);
+
+        float[] hallwayInedexes = new float[hallways.Count*2];
+        float[] hallwayWidths = new float[hallways.Count];
+        for (int  i = 0;  i < hallways.Count;  i++)
+        {
+            hallwayInedexes[2*i] = rooms.IndexOf(hallways[i].room1);
+            hallwayInedexes[2*i+1] = rooms.IndexOf(hallways[i].room2);
+            hallwayWidths[i] = hallways[i].width;
+        }
+        viewMat.SetFloatArray("_hallways", hallwayInedexes);
+
         viewMat.SetFloatArray("_hallways_width", new float[] { hallwaySize, hallwaySize, hallwaySize, hallwaySize, hallwaySize, hallwaySize });
 
         setSpritesAsTextures();
@@ -85,10 +110,11 @@ public class CaveGenerator : MonoBehaviour
         foreach (Room room in rooms)
         {
             value = smoothMin(value, room.getValue(pos), room.smoothFactor);
-            foreach (Hallway hallway in room.hallways)
-            {
-                value = smoothMin(value, hallway.getValue(pos), room.smoothFactor);
-            }
+            
+        }
+        foreach (Hallway hallway in hallways)
+        {
+            value = smoothMin(value, hallway.getValue(pos), 0f);
         }
         return value;
     }
@@ -114,42 +140,6 @@ public class CaveGenerator : MonoBehaviour
         texture_from_sprite.SetPixels(pixels);
         texture_from_sprite.Apply();
         viewMat.SetTexture("_WallTex", texture_from_sprite);
-    }
-    void generateMap(List<Room> rooms)
-    {
-        float[,] values = new float[resolution, resolution];
-
-        Color[] colors = new Color[resolution * resolution];
-        int index = 0;
-        for (int i = 0; i < values.GetLength(0); i++)
-        {
-            for (int j = 0; j < values.GetLength(1); j++)
-            {
-
-                Vector2 pos = new Vector2(i, j) / resolution * size + new Vector2(transform.position.x, transform.position.y) - new Vector2(transform.localScale.x, transform.localScale.y)/2 + offset;
-
-                float value = rooms[0].getValue(pos);
-
-                foreach(Room room in rooms)
-                {
-                    value = smoothMin(value, room.getValue(pos), room.smoothFactor);
-                    foreach (Hallway hallway in room.hallways)
-                    {
-                        value = smoothMin(value, hallway.getValue(pos), room.smoothFactor);
-                    }
-                }
-
-
-                values[i, j] = value > 0f ? .2f : .7f;
-                colors[index] = new Color(values[i, j], values[i, j], values[i, j]);
-                index++;
-            }
-        }
-
-        view.SetPixels(colors);
-        view.filterMode = FilterMode.Point;
-        view.Apply();
-
     }
     float smoothMin(float a, float b, float c)
     {
@@ -182,6 +172,7 @@ public class Room
         float value1 = Mathf.Pow(Mathf.Pow(Mathf.Abs(diff.x), squareFactor) + Mathf.Pow(Mathf.Abs(diff.y), squareFactor), 1 / squareFactor) / size - 1;
         return value1;
     }
+    
 
 }
 public class Hallway
@@ -210,4 +201,5 @@ public class Hallway
         Vector2 closest = getClosestPoint(coord);
         return (closest - coord).magnitude / width - 1;
     }
+    
 }
