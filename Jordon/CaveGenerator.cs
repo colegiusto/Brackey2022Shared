@@ -7,6 +7,7 @@ public class CaveGenerator : MonoBehaviour
     public Material viewMat;
     public Vector2 n1, n2, offset;
     Texture2D view;
+    public Sprite floor, wall;
     public int resolution, size, numRooms;
     public float roomSize, hallwaySize, squareFactor;
     public float smoothFactor
@@ -24,16 +25,49 @@ public class CaveGenerator : MonoBehaviour
         view = new Texture2D(resolution, resolution);
         viewMat = transform.GetComponent<Renderer>().material;
         viewMat.mainTexture = view;
-        rooms.Add(new Room(new Vector2(0,0), roomSize, smoothFactor));
+        rooms.Add(new Room(new Vector2(0,-1), roomSize, smoothFactor, 2));
 
         for (int i = 0; i < numRooms; i++)
         {
 
-            Room room = new Room(new Vector2(size * 3 / 4, size * (i + 1f) / (numRooms + 1f) - size/2f), roomSize/2, smoothFactor, 3);
+            Room room = new Room(new Vector2(size * (i + 1f) / (numRooms + 1f) - size/2f, size/3), roomSize/2, smoothFactor, 3);
             room.hallways.Add(new Hallway(rooms[0], room, hallwaySize));
             rooms.Add(room);
 
         }
+
+        float[] positions = new float[20];
+        float[] sizes = new float[10];
+        float[] smooth = new float[10];
+        float[] square = new float[10];
+
+        
+
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            positions[i * 2] = rooms[i].position.x;
+            positions[i * 2 + 1] = rooms[i].position.y;
+            sizes[i] = rooms[i].size;
+            smooth[i] = rooms[i].smoothFactor;
+            square[i] = rooms[i].squareFactor;
+
+        }
+
+        viewMat.SetInt("_num_rooms", rooms.Count);
+        viewMat.SetFloatArray("_room_positions", positions);
+        viewMat.SetFloatArray("_room_sizes", sizes);
+        viewMat.SetFloatArray("_room_smooth", smooth);
+        viewMat.SetFloatArray("_room_square", square);
+
+        viewMat.SetInt("_num_hallways", 5);
+        viewMat.SetFloatArray("_hallways", new float[] { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5 });
+        viewMat.SetFloatArray("_hallways_width", new float[] { hallwaySize, hallwaySize, hallwaySize, hallwaySize, hallwaySize, hallwaySize });
+
+        setSpritesAsTextures();
+
+
+
+
         gameObject.GetComponent<ColiderGenerator>().init();
 
     }
@@ -41,7 +75,7 @@ public class CaveGenerator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        generateMap(rooms);
+        //generateMap(rooms);
     }
 
     public float getValue(Vector2 pos)
@@ -59,28 +93,27 @@ public class CaveGenerator : MonoBehaviour
         return value;
     }
 
-    void randomizeTexture()
+    void setSpritesAsTextures()
     {
-        
-        float[,] values = new float[resolution, resolution];
+        Texture2D texture_from_sprite = new Texture2D((int)floor.rect.width, (int)floor.rect.height);
+        texture_from_sprite.filterMode = FilterMode.Point;
+        Color[] pixels = floor.texture.GetPixels((int)floor.textureRect.x,
+                                                (int)floor.textureRect.y,
+                                                (int)floor.textureRect.width,
+                                                (int)floor.textureRect.height);
+        texture_from_sprite.SetPixels(pixels);
+        texture_from_sprite.Apply();
+        viewMat.SetTexture("_MainTex", texture_from_sprite);
 
-        Color[] colors = new Color[resolution * resolution];
-        int index = 0;
-        for (int i = 0; i < values.GetLength(0); i++)
-        {
-            for (int j = 0; j < values.GetLength(1); j++)
-            {
-                values[i, j] = Random.value;
-                colors[index] = new Color(values[i, j], values[i, j], values[i, j]);
-                index++;
-            }
-        }
-
-        view.SetPixels(colors);
-        view.filterMode = FilterMode.Point;
-        view.Apply();
-
-       
+        texture_from_sprite = new Texture2D((int)wall.rect.width, (int)wall.rect.height);
+        texture_from_sprite.filterMode = FilterMode.Point;
+        pixels = floor.texture.GetPixels((int)wall.textureRect.x,
+                                                (int)wall.textureRect.y,
+                                                (int)wall.textureRect.width,
+                                                (int)wall.textureRect.height);
+        texture_from_sprite.SetPixels(pixels);
+        texture_from_sprite.Apply();
+        viewMat.SetTexture("_WallTex", texture_from_sprite);
     }
     void generateMap(List<Room> rooms)
     {
