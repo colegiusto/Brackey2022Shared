@@ -59,7 +59,10 @@ Shader "Unlit/cave"
                 {
                     return min(a, b);
                 }
-                float h = max(c - abs(a - b), 0.0) / c;
+                else {
+                    float h = max(c - abs(a - b), 0.0) / c;
+
+                }
                 return min(a, b) - h * h * h * c * (1.0 / 6.0);
             }
 
