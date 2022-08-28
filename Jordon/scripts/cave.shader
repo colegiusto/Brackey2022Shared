@@ -4,6 +4,7 @@ Shader "Unlit/cave"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _WallTex ("Wall_Texture", 2D) = "black" {}
+        _PixelsPerUnit ("Pixels_Per_Unit", Float) = 200.0
     }
     SubShader
     {
@@ -37,20 +38,22 @@ Shader "Unlit/cave"
             };
 
             sampler2D _MainTex;
+            float4 _MainTex_TexelSize;
             float4 _MainTex_ST;
 
+            float _PixelsPerUnit;
             sampler2D _WallTex;
             float4 _WallTex_ST;
 
             int _num_hallways;
-            float _hallways[20];
-            float _hallways_width[10];
+            float _hallways[40];
+            float _hallways_width[20];
 
             int _num_rooms;
-            float _room_positions[20];
-            float _room_sizes[10];
-            float _room_smooth[10];
-            float _room_square[10];
+            float _room_positions[40];
+            float _room_sizes[20];
+            float _room_smooth[20];
+            float _room_square[20];
 
 
             float smoothMin(float a, float b, float c)
@@ -142,7 +145,8 @@ Shader "Unlit/cave"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 col = getValueAtPos(i.worldPos.xy) < 0 ? tex2D( _MainTex, i.worldPos.xy) : tex2D(_WallTex, i.worldPos.xy);
+                
+                fixed4 col = getValueAtPos(floor(i.worldPos.xy* _PixelsPerUnit)/ _PixelsPerUnit) < 0 ? tex2D( _MainTex, i.worldPos.xy*_PixelsPerUnit/_MainTex_TexelSize.zw) : tex2D(_WallTex, i.worldPos.xy*_PixelsPerUnit/_MainTex_TexelSize.zw);
                 
                 return col;
             }

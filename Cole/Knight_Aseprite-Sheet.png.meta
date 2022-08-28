@@ -1,4 +1,5 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 0769ffc35cc741545bf5dce299026d97
 TextureImporter:
   internalIDToNameTable:
@@ -38,6 +39,11 @@ TextureImporter:
   - first:
       213: 8933923854435922852
     second: Knight_Aseprite-Sheet_11
+=======
+guid: 912d24aa6d00b4e4bac80b72bcdbabf1
+TextureImporter:
+  internalIDToNameTable: []
+>>>>>>> e6578b3299f67f2db6c1402c96c6cff8ef7967a7
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -68,6 +74,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
+<<<<<<< HEAD
     filterMode: 0
     aniso: 2
     mipBias: 0
@@ -78,11 +85,27 @@ TextureImporter:
   lightmap: 0
   compressionQuality: 50
   spriteMode: 2
+=======
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+>>>>>>> e6578b3299f67f2db6c1402c96c6cff8ef7967a7
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
+<<<<<<< HEAD
   spritePixelsToUnits: 32
+=======
+  spritePixelsToUnits: 100
+>>>>>>> e6578b3299f67f2db6c1402c96c6cff8ef7967a7
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -101,6 +124,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
+<<<<<<< HEAD
     maxTextureSize: 8192
     resizeAlgorithm: 0
     textureFormat: -1
@@ -150,6 +174,9 @@ TextureImporter:
   - serializedVersion: 3
     buildTarget: Windows Store Apps
     maxTextureSize: 8192
+=======
+    maxTextureSize: 2048
+>>>>>>> e6578b3299f67f2db6c1402c96c6cff8ef7967a7
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -161,6 +188,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
+<<<<<<< HEAD
     sprites:
     - serializedVersion: 2
       name: Knight_Aseprite-Sheet_0
@@ -418,6 +446,13 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 15a39da06ef217347ac2a1c7115bba4e
+=======
+    sprites: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+>>>>>>> e6578b3299f67f2db6c1402c96c6cff8ef7967a7
     internalID: 0
     vertices: []
     indices: 
